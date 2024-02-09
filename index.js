@@ -121,7 +121,8 @@ async function startSocket() {
 		// message command here
 		if (cmd) {
 			cmd = cmd.toLowerCase();
-			const args = cmd.trim().split(/ +/).slice(1);
+			const args = cmd.split(" ");
+
 			console.log(cmd);
 		} else {
 			console.error("Command is empty.");
@@ -130,21 +131,55 @@ async function startSocket() {
 
 		/**
 		 * execCommandline
-		 * @param { string } command
+		 * @param { string } serviceId
 		 */
-
-		function excCmd(command) {
-			exec(command, { cwd: rootPath }, (error, stdout, stderr) => {
-				if (error) {
-					console.error(`Error: ${error.message}`);
-					return;
-				}
-				if (stderr) {
-					console.error(`Error: ${stderr}`);
-					return;
-				}
-				console.log(`Output: ${stdout}`);
-			});
+		function Add(serviceId) {
+			exec(
+				`npx pm2 start --name @${serviceId} index.js -- ${serviceId}`,
+				{ cwd: rootPath },
+				(error, stdout, stderr) => {
+					if (error) {
+						return `Eror Tidak Bisa Menambah Service: *${error}*`;
+					}
+					if (stderr) {
+						return `Eror Tidak Bisa Menambah Service: *${stderr}*`;
+					}
+					console.log(`Exec cmd: ${stdout}`);
+					return `Service with ID @${serviceId} added successfully`;
+				},
+			);
+		}
+		function Restart(serviceId) {
+			exec(
+				`npx pm2 restart @${serviceId}`,
+				{ cwd: rootPath },
+				(error, stdout, stderr) => {
+					if (error) {
+						return `Eror Tidak Bisa Merestart Service: *${error}*`;
+					}
+					if (stderr) {
+						return `Eror Tidak Bisa Merestart Service: *${stderr}*`;
+					}
+					console.log(`Exec cmd: ${stdout}`);
+					return `Service with ID @${serviceId} restart successfully`;
+				},
+			);
+		}
+		function Delete(serviceId) {
+			exec(
+				`npx pm2 delete @${serviceId}`,
+				{ cwd: rootPath },
+				(error, stdout, stderr) => {
+					if (error) {
+						return `Eror Tidak Bisa Menghapus Service: *${error}*`;
+					}
+					if (stderr) {
+						return `Eror Tidak Bisa Menghapus Service: *${stderr}*`;
+					}
+					console.log(`Exec cmd: ${stdout}`);
+					return `Service with ID @${serviceId} Deleted successfully`;
+				},
+			);
 		}
 
 		switch (cmd) {
@@ -169,9 +204,8 @@ Contoh: Add *id layanan*`;
 					if (!serviceId) {
 						reply(id, "Service id Tidak boleh kosong\n *Contoh: * ```/add 1```");
 					} else {
-						await excCmd(
-							`npx pm2 start --name @${serviceId} index.js -- ${serviceId}`,
-						);
+						let a = await Add(serviceId);
+						reply(id, a);
 					}
 				}
 				break;
@@ -182,7 +216,8 @@ Contoh: Add *id layanan*`;
 					if (!serviceId) {
 						reply(id, "Service id Tidak boleh kosong\n *Contoh: * ```/restart 1```");
 					} else {
-						await excCmd(`npx pm2 restart @${serviceId}`);
+						let r = await Restart(serviceId);
+						reply(id, r);
 					}
 				}
 				break;
@@ -193,7 +228,8 @@ Contoh: Add *id layanan*`;
 					if (!serviceId) {
 						reply(id, "Service id Tidak boleh kosong\n *Contoh: * ```/add 1```");
 					} else {
-						await excCmd(`npx pm2 delete @${serviceId}`);
+						let d = await Delete(serviceId);
+						reply(id, d);
 					}
 				}
 				break;
