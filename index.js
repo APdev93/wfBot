@@ -114,16 +114,17 @@ async function startSocket() {
 
 		if (cmd === undefined) return;
 
-		function reply(id, msg) {
-			sock.sendMessage(id, { text: msg });
+		function reply(msg) {
+			sock.sendMessage(id, { text: msg }, { quoted: m });
 		}
 
 		// message command here
 		if (cmd) {
 			cmd = cmd.toLowerCase();
-			const args = cmd.split(" ");
-
 			console.log(cmd);
+			var args = cmd.split(" ");
+			cmd = args[0];
+			console.log("cmd: " + cmd);
 		} else {
 			console.error("Command is empty.");
 		}
@@ -139,13 +140,13 @@ async function startSocket() {
 				{ cwd: rootPath },
 				(error, stdout, stderr) => {
 					if (error) {
-						return `Eror Tidak Bisa Menambah Service: *${error}*`;
+						return reply(`Eror Tidak Bisa Menambah Service: *${error}*`);
 					}
 					if (stderr) {
-						return `Eror Tidak Bisa Menambah Service: *${stderr}*`;
+						return reply(`Eror Tidak Bisa Menambah Service: *${stderr}*`);
 					}
 					console.log(`Exec cmd: ${stdout}`);
-					return `Service with ID @${serviceId} added successfully`;
+					return reply(`Service with ID @${serviceId} added successfully`);
 				},
 			);
 		}
@@ -155,13 +156,13 @@ async function startSocket() {
 				{ cwd: rootPath },
 				(error, stdout, stderr) => {
 					if (error) {
-						return `Eror Tidak Bisa Merestart Service: *${error}*`;
+						return reply(`Eror Tidak Bisa Merestart Service: *${error}*`);
 					}
 					if (stderr) {
-						return `Eror Tidak Bisa Merestart Service: *${stderr}*`;
+						return reply(`Eror Tidak Bisa Merestart Service: *${stderr}*`);
 					}
 					console.log(`Exec cmd: ${stdout}`);
-					return `Service with ID @${serviceId} restart successfully`;
+					return reply(`Service with ID @${serviceId} restart successfully`);
 				},
 			);
 		}
@@ -171,13 +172,13 @@ async function startSocket() {
 				{ cwd: rootPath },
 				(error, stdout, stderr) => {
 					if (error) {
-						return `Eror Tidak Bisa Menghapus Service: *${error}*`;
+						return reply(`Eror Tidak Bisa Menghapus Service: *${error}*`);
 					}
 					if (stderr) {
-						return `Eror Tidak Bisa Menghapus Service: *${stderr}*`;
+						return reply(`Eror Tidak Bisa Menghapus Service: *${stderr}*`);
 					}
 					console.log(`Exec cmd: ${stdout}`);
-					return `Service with ID @${serviceId} Deleted successfully`;
+					return reply(`Service with ID @${serviceId} Deleted successfully`);
 				},
 			);
 		}
@@ -194,42 +195,51 @@ async function startSocket() {
 3. /delete
 
 Contoh: Add *id layanan*`;
-				reply(id, menu);
+				reply(menu);
 				break;
 
 			case "/add":
 				{
-					let serviceId = args[0];
-
+					let serviceId = args[1];
 					if (!serviceId) {
-						reply(id, "Service id Tidak boleh kosong\n *Contoh: * ```/add 1```");
-					} else {
-						let a = await Add(serviceId);
-						reply(id, a);
+						reply("Service id Tidak boleh kosong\n *Contoh: * ```/add 1```");
+					}
+
+					try {
+						reply("```Wait a minute```");
+						await Add(serviceId);
+					} catch (err) {
+						console.log(err);
 					}
 				}
 				break;
 			case "/restart":
 				{
-					let serviceId = args[0];
+					let serviceId = args[1];
 
 					if (!serviceId) {
-						reply(id, "Service id Tidak boleh kosong\n *Contoh: * ```/restart 1```");
-					} else {
-						let r = await Restart(serviceId);
-						reply(id, r);
+						reply("Service id Tidak boleh kosong\n *Contoh: * ```/restart 1```");
+					}
+					try {
+						reply("```Wait a minute```");
+						await Restart(serviceId);
+					} catch (err) {
+						console.log(err);
 					}
 				}
 				break;
 			case "/delete":
 				{
-					let serviceId = args[0];
+					let serviceId = args[1];
 
 					if (!serviceId) {
-						reply(id, "Service id Tidak boleh kosong\n *Contoh: * ```/add 1```");
-					} else {
-						let d = await Delete(serviceId);
-						reply(id, d);
+						reply("Service id Tidak boleh kosong\n *Contoh: * ```/add 1```");
+					}
+					try {
+						reply("```Wait a minute```");
+						await Delete(serviceId);
+					} catch (err) {
+						console.log(err);
 					}
 				}
 				break;
@@ -239,3 +249,4 @@ Contoh: Add *id layanan*`;
 	});
 }
 startSocket();
+
